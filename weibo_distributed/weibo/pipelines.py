@@ -5,7 +5,7 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 
-import pymongo,re,time
+import pymongo,re,time,datetime
 
 from weibo.items import UserItem, WeiboItem
 
@@ -42,7 +42,9 @@ class WeiboPipeline():
             date = time.strftime('%Y-%m-%d', time.localtime(time.time()-24 * 60 * 60)) + ' ' + date
         if re.match('\d{2}-\d{2}', date):
             date = time.strftime('%Y-', time.localtime()) + date + ' 00:00'
-        if re.match('')
+        else:
+            FORMAT = '%a %b %d %H:%M:%S +0800 %Y'
+            date = datetime.datetime.strptime(date, FORMAT)
         return date
 
     def process_item(self, item, spider):
