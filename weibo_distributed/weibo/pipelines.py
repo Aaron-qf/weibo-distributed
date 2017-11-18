@@ -13,10 +13,6 @@ from py2neo.ogm import GraphObject, Property, RelatedTo, RelatedFrom, Related
 
 from py2neo import Graph,Node,Relationship
 
-#
-# class WeiboPipeline(object):
-#     def process_item(self, item, spider):
-#         return item
 
 
 class TimePipeline():
@@ -52,8 +48,6 @@ class WeiboPipeline():
             if item.get('created_at'):
                 item['created_at'] = item['created_at'].strip()
                 item['created_at'] = self.parse_time(item.get('created_at'))
-            # if item.get('pictures'):
-            #     item['pictures'] = [pic.get('url') for pic in item.get('pictures')]
         return item
 
 
@@ -165,7 +159,6 @@ class NeoPipeline(object):
             # self.graph.create(weibo)#插入微博节点
 
             user = User.select(self.graph).where(id=item['user']).first()
-            print('user------------------\n',user)
             user.publish.add(weibo)  # 通过发布关系插入微博节点（做到同时插入微博节点和相应的发布无向边）,如果不存在则添加，存在则更新
             self.graph.push(user)#更新数据库
             # self.graph.push(weibo)
@@ -181,12 +174,7 @@ class NeoPipeline(object):
                 # self.graph.create(repost_relationship)#插入转发关系边到数据库
 
                 #方案一
-                # print('666666666666666666666666666666666\n\n\n')
-                # print('-------------------origin\n\n',item['origin'],type(item['origin']))
-
                 root_weibo = Weibo.select(self.graph).where(id=str(item['origin'])).first()  # 获取根微博
-
-                print('-------------------root_weibo\n\n',root_weibo)
                 weibo = Weibo.select(self.graph).where(id=item['id']).first()#获取刚刚插入的最内层微博
                 weibo.repost.add(root_weibo)  # 建立和根微博的关系（有向边）
                 self.graph.push(weibo)
@@ -194,8 +182,6 @@ class NeoPipeline(object):
             elif item['pid']!=0 and item['pid']!=None : #最外层以及中间层微博
 
                 #方案一
-                print('77777777777777777777777\n\n\n')
-
                 next_weibo = Weibo()#预先插入下一层转发微博id
                 next_weibo.id = str(item['pid'])#下一层id=本层pid
                 weibo = Weibo.select(self.graph).where(id=item['id']).first()#获取刚刚插入的最外层微博
