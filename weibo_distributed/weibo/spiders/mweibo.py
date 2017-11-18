@@ -16,28 +16,23 @@ class MweiboSpider(scrapy.Spider):
     allowed_domains = ["m.weibo.cn"]
     start_urls = ['http://m.weibo.cn/']
     start_url = 'http://m.weibo.cn/api/container/getIndex?containerid=100103type=1&q={keyword}&page={page}'#%3D1%26q%3D  ----   =1&q=
-    # hot_url = 'http://m.weibo.cn/api/container/getIndex?containerid=100103type=60&q={keyword}&page={page}'#%3D60%26q%3D  ----   =60&q=
     hot_url = 'http://m.weibo.cn/api/container/getIndex?containerid=100103type%3D60%26q%3D{keyword}&page={page}'#%3D60%26q%3D  ----   =60&q=
     repost_url = 'https://m.weibo.cn/api/statuses/repostTimeline?id={id}&page={page}'
     repost_html_url = 'https://m.weibo.cn/status/{weibo_id}'
-    # true_url = urllib.parse.quote(url)
-    # keywords= ['爱情','死亡','王思聪']
+    
     keywords= ['爱情']
 
     def start_requests(self):
         for keyword in self.keywords:
-            # yield scrapy.Request(self.start_url.format(keyword=keyword,page=1),callback=self.start_page_parse)
             yield scrapy.Request(self.hot_url.format(keyword=keyword,page=1),callback=self.hot_weibo_parse,priority=-4,
                                  meta={'keyword':keyword,'page':1})
 
 
 
     def start_page_parse(self, response):
-        # print(response.text)
         self.logger.debug(response)
 
     def hot_weibo_parse(self,response):
-        # self.logger.debug(response)
         result = json.loads(response.text)
         if result.get('cards'):
             card_groups = result.get('cards')[-1].get('card_group')
@@ -123,15 +118,6 @@ class MweiboSpider(scrapy.Spider):
             yield scrapy.Request(self.repost_url.format(id=origin_id, page=page), callback=self.repost_parse_origin,priority=-1,
                                  meta={'origin_id': origin_id, 'keyword': keyword, 'page': page})
 
-    #             if re.search(r'//@',item.get('raw_text'))==None:#直接转发的微博
-    #                 yield scrapy.Request(self.repost_html_url.format(weibo_id=weibo_id),callback=self.repost_parse_direct)
-    #             else:#多次转发的微博
-    #                 yield scrapy.Request(self.repost_html_url.format(weibo_id=weibo_id),callback=self.repost_parse_multiple)
-    #
-    # def repost_parse_direct(self,response):
-    #     pass
-    # def repost_parse_multiple(self,response):
-    #     pass
 
     def repost_parse(self,response):
         pattern = re.compile('\$render_data\s=(.*)\[\d\]\s\|\|',re.S)
